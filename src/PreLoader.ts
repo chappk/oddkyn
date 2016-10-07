@@ -11,7 +11,7 @@ export class PreLoader extends Phaser.State
         this.load.setPreloadSprite(this.preLoadBar);
 
         this.load.spritesheet('grass', 'assets/tiles/grass.png', 100, 66, 4);
-        //this.load.spritesheet('dirt', 'assets/tiles/dirt.png', 50, 50, 4);
+        this.load.spritesheet('empty', 'assets/tiles/empty.png', 100, 66, 4);
     }
 
     create()

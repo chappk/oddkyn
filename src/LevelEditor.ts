@@ -6,7 +6,7 @@ module Oddkyn
 export class LevelEditor extends Phaser.State
 {
 
-    board: Board;
+    board: BoardEditor;
 
     init()
     {
@@ -20,7 +20,7 @@ export class LevelEditor extends Phaser.State
 
     create()
     {
-        this.board = new Board(this.game, 5);
+        this.board = new BoardEditor(this.game, 9);
     }    
 }
 

@@ -11,6 +11,7 @@ export class Visual extends Phaser.Sprite
     {
         super(game, x, y, key);
         this.inputEnabled = true;
+        this.input.pixelPerfectAlpha = 5;
         this.input.pixelPerfectOver = true;
         this.input.pixelPerfectClick = true;
         this.orientation = ori;
