@@ -1,5 +1,4 @@
 /// <reference path="Game.ts" />
-
 /// <reference path="Case.ts" />
 
 module Oddkyn
@@ -8,65 +7,87 @@ module Oddkyn
 export class Board
 {
     // Reference to the game instance
-    private _game: Oddkyn.Game;
+    protected _game: Oddkyn.Game;
     // Size of the board - Must be a square
-    private _size: number;
+    protected _size: number;
     // LayerManager
-    private _display: Board.LayerManager;
-    // 
-    //private _representation: Array<Array<Case>;
+    protected _display: LayerManager;
+    // Internal representation
+    public representation: Array<Array<Square>>;
 
-    constructor(game: Oddkyn.Game, size: number)
+    constructor(game: Oddkyn.Game, size: number, load?: string)
     {
         this._game = game;
         this._size = size;
-        this._display = new Board.LayerManager(this._game);
+        this._display = new LayerManager(game, this);
+
+        if(load)
+        {
+            // Read Json File and parse it
+        }
     }
 
-
-
+    public size(): number
+    {
+        return this._size;
+    }
 }
 
-export module Board
+export class BoardEditor extends Board
 {
-
-export enum LayerType {Environment = 0, Playable, Particle};
-
-export class LayerManager extends Phaser.Group
-{
-    // Hold reference to Oddkyn Game
-    private _game: Oddkyn.Game;
-    // Hold groups to display the static environment
-    private _layers: Array<Array<Phaser.Group>>;
-
-    constructor(game: Oddkyn.Game)
+    constructor(game: Oddkyn.Game, size: number)
     {
-        super(game);
-        this._game = game;
-        this._environmentLayer = new Array<Phaser.Group>();
-        this._playableLayer = new Array<Phaser.Group>();
-        this._particleLayer = new Array<Phaser.Group>();
+        super(game, size);
+        this.representation = new Array<Array<SquareEditor>>(size);
+        for(let i = 0; i < this.representation.length; ++i)
+        {
+            this.representation[i] = new Array<SquareEditor>(size);
+            for(let j = 0; j < this.representation[i].length; ++j)
+            {
+                this.addSquare(i, j, 0, "empty", BoardElement.Orientation.North);
+            }
+        }
+        for(let i = 0; i < this.representation.length; ++i)
+        {
+            for(let square of this.representation[i])
+            {
+                square.computeNeighbours();
+            }
+        }
     }
 
-    public addLayer()
+    public addSquare(i: number, j: number, z: number, key: string, ori: BoardElement.Orientation)
     {
-        this._environmentLayer.push(this._game.add.group(this));
-        this._playableLayer.push(this._game.add.group(this));
-        this._particleLayer.push(this._game.add.group(this));
+        let s = new SquareEditor(this._game, this, i, j, z, key, ori);
+        this._display.addGC(i, j, z, s, Layer.Type.Environment);
+        this.representation[i][j] = s;
     }
 
-    public removeLayer()
+    public removeSquare(i: number, j: number, z: number, s: Square)
     {
-        this._particleLayer.pop();
-        this._playableLayer.pop();
-        this._environmentLayer.pop();
+        let sdown = s._neighbours[Square.Neighbour.Down];
+        if(sdown != undefined)
+        {
+            sdown._neighbours[Square.Neighbour.Up] = undefined; 
+        }
+        //sdown.computeNeighbours();
+        this._display.removeGC(i, j, z, s, Layer.Type.Environment);
     }
 
-    public addToLayer(type: LayerType, i: number)
+    public getKey(): string
     {
+        return "grass";
     }
+
+    public getOri(): BoardElement.Orientation
+    {
+        return BoardElement.Orientation.North;
+    }
+
 }
 
-}
+
+
+
 
 }

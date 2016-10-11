@@ -5,263 +5,80 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var Oddkyn;
 (function (Oddkyn) {
-    (function (Orientation) {
-        Orientation[Orientation["North"] = 0] = "North";
-        Orientation[Orientation["West"] = 1] = "West";
-        Orientation[Orientation["South"] = 2] = "South";
-        Orientation[Orientation["East"] = 3] = "East";
-    })(Oddkyn.Orientation || (Oddkyn.Orientation = {}));
-    var Orientation = Oddkyn.Orientation;
-    var Visual = (function (_super) {
-        __extends(Visual, _super);
-        function Visual(game, x, y, key, ori) {
-            if (ori === void 0) { ori = Orientation.North; }
-            _super.call(this, game, x, y, key);
-            this.inputEnabled = true;
-            this.input.pixelPerfectAlpha = 5;
-            this.input.pixelPerfectOver = true;
-            this.input.pixelPerfectClick = true;
-            this.orientation = ori;
-            this.frame = this.orientation;
+    var Game = (function (_super) {
+        __extends(Game, _super);
+        function Game() {
+            _super.call(this, 800, 600, Phaser.AUTO, 'game', null);
+            this.state.add('Boot', Oddkyn.Boot, false);
+            this.state.add('PreLoader', Oddkyn.PreLoader, false);
+            this.state.add('LevelEditor', Oddkyn.LevelEditor, false);
+            this.state.start('Boot', true, true);
         }
-        Visual.prototype.rotateRight = function () {
-            this.frame = (this.orientation + 1) % 4;
-        };
-        Visual.prototype.rotateLeft = function () {
-            this.frame = (this.orientation - 1) % 4;
-        };
-        return Visual;
-    }(Phaser.Sprite));
-    Oddkyn.Visual = Visual;
+        return Game;
+    }(Phaser.Game));
+    Oddkyn.Game = Game;
 })(Oddkyn || (Oddkyn = {}));
-/// <reference path="Visual.ts" />
-var Oddkyn;
-(function (Oddkyn) {
-    (function (Neighbour) {
-        Neighbour[Neighbour["North"] = 0] = "North";
-        Neighbour[Neighbour["East"] = 1] = "East";
-        Neighbour[Neighbour["South"] = 2] = "South";
-        Neighbour[Neighbour["West"] = 3] = "West";
-        Neighbour[Neighbour["Up"] = 4] = "Up";
-        Neighbour[Neighbour["Down"] = 5] = "Down";
-    })(Oddkyn.Neighbour || (Oddkyn.Neighbour = {}));
-    var Neighbour = Oddkyn.Neighbour;
-    ;
-    var CaseEditor = (function (_super) {
-        __extends(CaseEditor, _super);
-        function CaseEditor(game, board, x, y, key, ori) {
-            if (ori === void 0) { ori = Oddkyn.Orientation.North; }
-            _super.call(this, game, x, y, key, ori);
-            this.events.onInputOver.add(this.mouseOver, this);
-            this.events.onInputOut.add(this.mouseOut, this);
-            game.add.existing(this);
-            this.board = board;
-            this.effects = key;
-            this.floor = 0;
-            this.events.onInputDown.add(this.__click, this);
-            this.neighbours = new Array(6);
-        }
-        CaseEditor.prototype.stack = function (key, ori) {
-            if (ori === void 0) { ori = Oddkyn.Orientation.North; }
-            var c = this.board.stack(this, key, ori);
-            this.computeNeighbours(c);
-        };
-        CaseEditor.prototype.computeNeighbours = function (c) {
-            if (this.floor != 0) {
-                this.neighbours[Neighbour.Up] = c;
-                c.neighbours[Neighbour.Down] = this;
-            }
-            if (this.board[this.i + 1][this.j].effects != "empty") {
-                this.neighbours[Neighbour.East] = this.board[this.i + 1][this.j];
-            }
-            if (this.board[this.i - 1][this.j].effects != "empty") {
-                this.neighbours[Neighbour.West] = this.board[this.i - 1][this.j];
-            }
-            if (this.board[this.i][this.j + 1].effects != "empty") {
-                this.neighbours[Neighbour.North] = this.board[this.i][this.j + 1];
-            }
-            if (this.board[this.i][this.j - 1].effects != "empty") {
-                this.neighbours[Neighbour.South] = this.board[this.i][this.j - 1];
-            }
-        };
-        CaseEditor.prototype.unstack = function () {
-        };
-        CaseEditor.prototype.mouseOver = function () {
-            this.tint = 0x00FF00;
-        };
-        CaseEditor.prototype.mouseOut = function () {
-            this.tint = 0xFFFFFF;
-        };
-        CaseEditor.prototype.__click = function (pointer) {
-            this.stack("grass");
-            if (pointer.rightButton) {
-            }
-            else if (pointer.middleButton) {
-                console.log("left");
-            }
-        };
-        return CaseEditor;
-    }(Oddkyn.Visual));
-    Oddkyn.CaseEditor = CaseEditor;
-    var CaseEditor;
-    (function (CaseEditor) {
-        var Data = (function () {
-            function Data() {
-            }
-            Data.height = 66;
-            Data.width = 100;
-            Data.halfHeight = Data.height * 0.5;
-            Data.halfWidth = Data.width * 0.5;
-            Data.side = 12;
-            Data.upperSide = 6;
-            Data.lowerSide = 6;
-            return Data;
-        }());
-        CaseEditor.Data = Data;
-    })(CaseEditor = Oddkyn.CaseEditor || (Oddkyn.CaseEditor = {}));
-})(Oddkyn || (Oddkyn = {}));
+// when the page has finished loading, create our game
+window.onload = function () {
+    var game = new Oddkyn.Game();
+};
+/// <reference path="Game.ts" />
 /// <reference path="Case.ts" />
 var Oddkyn;
 (function (Oddkyn) {
+    var Board = (function () {
+        function Board(game, size, load) {
+            this._game = game;
+            this._size = size;
+            this._display = new Oddkyn.LayerManager(game, this);
+            if (load) {
+            }
+        }
+        Board.prototype.size = function () {
+            return this._size;
+        };
+        return Board;
+    }());
+    Oddkyn.Board = Board;
     var BoardEditor = (function (_super) {
         __extends(BoardEditor, _super);
         function BoardEditor(game, size) {
-            if (size === void 0) { size = 17; }
-            _super.call(this);
-            this.game = game;
-            this.size = size;
-            this.board = game.add.group();
-            this.casesLayer = new Array();
-            this.charactersLayer = new Array();
-            this.boardArray = new Array();
-            this.addLayer();
-            for (var i = 0; i < this.size; i++) {
-                this.boardArray[i] = new Array();
-                for (var j = 0; j < this.size; j++) {
-                    var _a = this.ijToxy(i, j), x = _a[0], y = _a[1];
-                    this.boardArray[i][j] = new Oddkyn.CaseEditor(game, this, x, y, "empty");
-                    this.casesLayer[0].add(this.boardArray[i][j]);
+            _super.call(this, game, size);
+            this.representation = new Array(size);
+            for (var i = 0; i < this.representation.length; ++i) {
+                this.representation[i] = new Array(size);
+                for (var j = 0; j < this.representation[i].length; ++j) {
+                    this.addSquare(i, j, 0, "empty", Oddkyn.BoardElement.Orientation.North);
                 }
             }
-            //Construct Polygon View
-            var gCX = game.world.centerX;
-            var gCY = game.world.centerY;
-            var gHH = game.world.height * 0.5;
-            var gHW = game.world.width * 0.5;
-            var dH = (this.size - 1) * 0.5 * (Oddkyn.CaseEditor.Data.height - Oddkyn.CaseEditor.Data.side) + Oddkyn.CaseEditor.Data.halfHeight;
-            var dW = this.size * Oddkyn.CaseEditor.Data.halfWidth;
-            this.points = new Array();
-            this.points.push(new Phaser.Point(gCX, gCY - dH));
-            this.points.push(new Phaser.Point(gCX + dW, gCY - Oddkyn.CaseEditor.Data.upperSide));
-            this.points.push(new Phaser.Point(gCX, gCY + dH - Oddkyn.CaseEditor.Data.side));
-            this.points.push(new Phaser.Point(gCX - dW, gCY - Oddkyn.CaseEditor.Data.upperSide));
-            var graphic = game.add.graphics(0, 0);
-            graphic.alpha = 0.2;
-            graphic.beginFill(0xFF33FF);
-            graphic.drawPolygon(this);
-            graphic.endFill();
-            //game.input.onDown.add(this.click, this);
-            game.world.bringToTop(this.board);
+            for (var i = 0; i < this.representation.length; ++i) {
+                for (var _i = 0, _a = this.representation[i]; _i < _a.length; _i++) {
+                    var square = _a[_i];
+                    square.computeNeighbours();
+                }
+            }
         }
-        BoardEditor.prototype.translate = function (x, y) {
-            for (var _i = 0, _a = this.points; _i < _a.length; _i++) {
-                var p = _a[_i];
-                p.setTo(p.x + x, p.y + y);
-            }
+        BoardEditor.prototype.addSquare = function (i, j, z, key, ori) {
+            var s = new Oddkyn.SquareEditor(this._game, this, i, j, z, key, ori);
+            this._display.addGC(i, j, z, s, Oddkyn.Layer.Type.Environment);
+            this.representation[i][j] = s;
         };
-        BoardEditor.prototype.addLayer = function () {
-            this.casesLayer.push(this.game.add.group(this.board));
-            this.charactersLayer.push(this.game.add.group(this.board));
+        BoardEditor.prototype.removeSquare = function (i, j, z, s) {
+            var sdown = s._neighbours[Oddkyn.Square.Neighbour.Down];
+            if (sdown != undefined) {
+                sdown._neighbours[Oddkyn.Square.Neighbour.Up] = undefined;
+            }
+            //sdown.computeNeighbours();
+            this._display.removeGC(i, j, z, s, Oddkyn.Layer.Type.Environment);
         };
-        BoardEditor.prototype.click = function (pointer) {
-            if (this.contains(pointer.x, pointer.y)) {
-                var _a = this.xyToij(pointer.x, pointer.y), i = _a[0], j = _a[1];
-                if (i < this.size && j < this.size && i >= 0 && j >= 0 &&
-                    this.boardArray[i][j] == null) {
-                    this.addCase(i, j);
-                }
-                else {
-                    var c = this.boardArray[i][j].stack("grass");
-                }
-            }
+        BoardEditor.prototype.getKey = function () {
+            return "grass";
         };
-        BoardEditor.prototype.stack = function (c, key, ori) {
-            while (c.neighbours[Oddkyn.Neighbour.Up]) {
-                c = c.neighbours[Oddkyn.Neighbour.Up];
-            }
-            var y = c.y - Oddkyn.CaseEditor.Data.side;
-            var cTop = new Oddkyn.CaseEditor(this.game, this, c.x, y, key, ori);
-            cTop.floor = c.floor + 1;
-            if (cTop.floor >= this.casesLayer.length) {
-                this.addLayer();
-            }
-            this.casesLayer[cTop.floor].add(cTop);
-            this.casesLayer[cTop.floor].sort('y', Phaser.Group.SORT_ASCENDING);
-            return cTop;
-        };
-        BoardEditor.prototype.addCase = function (i, j, key, ori) {
-            if (key === void 0) { key = "grass"; }
-            if (ori === void 0) { ori = Oddkyn.Orientation.North; }
-            var _a = this.ijToxy(i, j), x = _a[0], y = _a[1];
-            //this.boardArray[i][j] = new CaseEditor(this.game, x, y, key, ori);
-            //this.cases.add(this.boardArray[i][j]);
-            //this.cases.sort('y', Phaser.Group.SORT_ASCENDING);
-        };
-        BoardEditor.prototype.xyToij = function (x, y) {
-            var dH = this.game.height * 0.5 -
-                ((this.size - 1) * 0.5 * (Oddkyn.CaseEditor.Data.height - Oddkyn.CaseEditor.Data.side) +
-                    Oddkyn.CaseEditor.Data.halfHeight);
-            var dW = this.game.width * 0.5 - Oddkyn.CaseEditor.Data.halfWidth;
-            var xx = x - dW;
-            var yy = y - dH;
-            var cw = Oddkyn.CaseEditor.Data.width;
-            var chw = Oddkyn.CaseEditor.Data.halfWidth;
-            var ch = Oddkyn.CaseEditor.Data.height;
-            var chh = Oddkyn.CaseEditor.Data.halfHeight;
-            var cdhs = Oddkyn.CaseEditor.Data.height - Oddkyn.CaseEditor.Data.side;
-            var cdhus2 = chh - Oddkyn.CaseEditor.Data.upperSide;
-            var i0 = Math.floor(xx / cw);
-            var j0 = Math.floor(yy / cdhs);
-            var i = i0 + j0;
-            var j = j0 - i0;
-            var ox = i0 * cw + dW;
-            var oy = j0 * cdhs + dH;
-            if (this.inTriangle(ox, oy, ox + chw, oy, ox, oy + cdhus2, x, y)) {
-                i--;
-            }
-            else if (this.inTriangle(ox + chw, oy, ox + cw, oy, ox + cw, oy + cdhus2, x, y)) {
-                j--;
-            }
-            else if (this.inTriangle(ox + chw, oy + ch, ox + cw, oy + cdhus2, ox + cw, oy + ch, x, y) ||
-                this.inTriangle(ox + chw, oy + ch, ox + chw, oy + cdhs, ox + cw, oy + cdhus2, x, y)) {
-                i++;
-            }
-            else if (this.inTriangle(ox, oy + cdhus2, ox + chw, oy + cdhs, ox + chw, oy + ch, x, y) ||
-                this.inTriangle(ox, oy + cdhus2, ox, oy + ch, ox + chw, oy + cdhs, x, y)) {
-                j++;
-            }
-            return [i, j];
-        };
-        BoardEditor.prototype.ijToxy = function (i, j) {
-            var i0 = (i - j) * 0.5;
-            var j0 = (i + j) * 0.5;
-            var dH = this.game.height * 0.5 -
-                ((this.size - 1) * 0.5 * (Oddkyn.CaseEditor.Data.height - Oddkyn.CaseEditor.Data.side) +
-                    Oddkyn.CaseEditor.Data.halfHeight);
-            var dW = this.game.width * 0.5 - Oddkyn.CaseEditor.Data.halfWidth;
-            var cdhs = Oddkyn.CaseEditor.Data.height - Oddkyn.CaseEditor.Data.side;
-            var x = i0 * Oddkyn.CaseEditor.Data.width + dW;
-            var y = j0 * cdhs + dH;
-            return [x, y];
-        };
-        BoardEditor.prototype.inTriangle = function (p0x, p0y, p1x, p1y, p2x, p2y, px, py) {
-            var Area = 0.5 * (-p1y * p2x + p0y * (-p1x + p2x) + p0x * (p1y - p2y) + p1x * p2y);
-            var s = 1 / (2 * Area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * px + (p0x - p2x) * py);
-            var t = 1 / (2 * Area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * px + (p1x - p0x) * py);
-            return s > 0 && t > 0 && 1 - t - s > 0;
+        BoardEditor.prototype.getOri = function () {
+            return Oddkyn.BoardElement.Orientation.North;
         };
         return BoardEditor;
-    }(Phaser.Polygon));
+    }(Board));
     Oddkyn.BoardEditor = BoardEditor;
 })(Oddkyn || (Oddkyn = {}));
 var Oddkyn;
@@ -302,23 +119,135 @@ var Oddkyn;
 })(Oddkyn || (Oddkyn = {}));
 var Oddkyn;
 (function (Oddkyn) {
-    var Game = (function (_super) {
-        __extends(Game, _super);
-        function Game() {
-            _super.call(this, 800, 600, Phaser.AUTO, 'game', null);
-            this.state.add('Boot', Oddkyn.Boot, false);
-            this.state.add('PreLoader', Oddkyn.PreLoader, false);
-            this.state.add('LevelEditor', Oddkyn.LevelEditor, false);
-            this.state.start('Boot', true, true);
+    var GraphicsComponent = (function (_super) {
+        __extends(GraphicsComponent, _super);
+        function GraphicsComponent(game, x, y, key) {
+            _super.call(this, game, x, y, key);
+            this.inputEnabled = true;
+            this.input.pixelPerfectAlpha = 5;
+            this.input.pixelPerfectOver = true;
+            this.input.pixelPerfectClick = true;
         }
-        return Game;
-    }(Phaser.Game));
-    Oddkyn.Game = Game;
+        return GraphicsComponent;
+    }(Phaser.Sprite));
+    Oddkyn.GraphicsComponent = GraphicsComponent;
+    var BoardElement = (function (_super) {
+        __extends(BoardElement, _super);
+        function BoardElement(game, board, i, j, z, key) {
+            _super.call(this, game, 0, 0, key);
+            this._board = board;
+            this._i = i;
+            this._j = j;
+            this._z = z;
+        }
+        BoardElement.prototype.rotate = function (rot) {
+            switch (rot) {
+                case BoardElement.Rotation.Right:
+                    this.frame = (this.frame + 1) % 4;
+                    break;
+                case BoardElement.Rotation.Left:
+                    this.frame = (this.frame - 1) % 4;
+                    break;
+            }
+        };
+        return BoardElement;
+    }(GraphicsComponent));
+    Oddkyn.BoardElement = BoardElement;
+    var BoardElement;
+    (function (BoardElement) {
+        (function (Rotation) {
+            Rotation[Rotation["Right"] = 0] = "Right";
+            Rotation[Rotation["Left"] = 1] = "Left";
+        })(BoardElement.Rotation || (BoardElement.Rotation = {}));
+        var Rotation = BoardElement.Rotation;
+        ;
+        (function (Orientation) {
+            Orientation[Orientation["North"] = 0] = "North";
+            Orientation[Orientation["West"] = 1] = "West";
+            Orientation[Orientation["South"] = 2] = "South";
+            Orientation[Orientation["East"] = 3] = "East";
+        })(BoardElement.Orientation || (BoardElement.Orientation = {}));
+        var Orientation = BoardElement.Orientation;
+        ;
+    })(BoardElement = Oddkyn.BoardElement || (Oddkyn.BoardElement = {}));
 })(Oddkyn || (Oddkyn = {}));
-// when the page has finished loading, create our game
-window.onload = function () {
-    var game = new Oddkyn.Game();
-};
+/// <reference path="Game.ts" />
+/// <reference path="Board.ts" />
+var Oddkyn;
+(function (Oddkyn) {
+    var Layer = (function (_super) {
+        __extends(Layer, _super);
+        function Layer(game, parent) {
+            _super.call(this, game, parent);
+            this._layers = new Array(3);
+            for (var i = 0; i < this._layers.length; ++i) {
+                this._layers[i] = game.add.group(this);
+            }
+        }
+        Layer.prototype.addGC = function (gc, type) {
+            this._layers[type].add(gc);
+        };
+        Layer.prototype.removeGC = function (gc, type) {
+            this._layers[type].remove(gc);
+            gc.kill();
+        };
+        return Layer;
+    }(Phaser.Group));
+    Oddkyn.Layer = Layer;
+    var Layer;
+    (function (Layer) {
+        (function (Type) {
+            Type[Type["Environment"] = 0] = "Environment";
+            Type[Type["Playable"] = 1] = "Playable";
+            Type[Type["Particle"] = 2] = "Particle";
+        })(Layer.Type || (Layer.Type = {}));
+        var Type = Layer.Type;
+        ;
+    })(Layer = Oddkyn.Layer || (Oddkyn.Layer = {}));
+    var LayerManager = (function (_super) {
+        __extends(LayerManager, _super);
+        function LayerManager(game, board) {
+            _super.call(this, game);
+            this._board = board;
+            this._layers = new Array(2 * board.size() - 1);
+            for (var i = 0; i < this._layers.length; ++i) {
+                this._layers[i] = new Layer(game, this);
+            }
+        }
+        LayerManager.prototype.addGC = function (i, j, z, gc, type) {
+            switch (type) {
+                case Layer.Type.Environment:
+                    _a = this.computeEnvironmentXY(i, j, z), gc.x = _a[0], gc.y = _a[1];
+                    break;
+                case Layer.Type.Particle:
+                    break;
+                case Layer.Type.Playable:
+                    break;
+            }
+            this._layers[i + j].addGC(gc, type);
+            this.sort('y', Phaser.Group.SORT_ASCENDING);
+            var _a;
+        };
+        LayerManager.prototype.removeGC = function (i, j, z, gc, type) {
+            this._layers[i + j].removeGC(gc, type);
+            this.sort('y', Phaser.Group.SORT_ASCENDING);
+        };
+        LayerManager.prototype.computeEnvironmentXY = function (i, j, z) {
+            var i0 = (i - j) * 0.5;
+            var j0 = (i + j) * 0.5;
+            var dH = this.game.height * 0.5 -
+                ((this._board.size() - 1) * 0.5 * (Oddkyn.Square.Data.height -
+                    Oddkyn.Square.Data.side) + Oddkyn.Square.Data.halfHeight);
+            var dW = this.game.width * 0.5 - Oddkyn.Square.Data.halfWidth;
+            var cdhs = Oddkyn.Square.Data.height - Oddkyn.Square.Data.side;
+            var x = i0 * Oddkyn.Square.Data.width + dW;
+            var y = j0 * cdhs + dH - Oddkyn.Square.Data.side * z;
+            return [x, y];
+        };
+        return LayerManager;
+    }(Phaser.Group));
+    Oddkyn.LayerManager = LayerManager;
+})(Oddkyn || (Oddkyn = {}));
 /// <reference path="Board.ts" />
 var Oddkyn;
 (function (Oddkyn) {
@@ -333,7 +262,18 @@ var Oddkyn;
         LevelEditor.prototype.preload = function () {
         };
         LevelEditor.prototype.create = function () {
-            this.board = new Oddkyn.BoardEditor(this.game, 9);
+            this.notDown = true;
+            this.game.input.mouse.capture = true;
+            this.board = new Oddkyn.BoardEditor(this.game, 3);
+        };
+        LevelEditor.prototype.update = function () {
+            if (this.game.input.activePointer.leftButton.isDown && this.notDown) {
+                this.notDown = false;
+                console.log("COUCOU", this.notDown);
+            }
+            else if (this.game.input.activePointer.leftButton.isUp) {
+                this.notDown = true;
+            }
         };
         return LevelEditor;
     }(Phaser.State));
@@ -381,3 +321,138 @@ var Splash = (function () {
     };
     return Splash;
 }());
+/// <reference path="Game.ts" />
+var Oddkyn;
+(function (Oddkyn) {
+    var Square = (function (_super) {
+        __extends(Square, _super);
+        function Square(game, board, i, j, z, key, ori) {
+            _super.call(this, game, board, i, j, z, key);
+            this._neighbours = new Array(6);
+            this.frame = ori;
+            this._effects = key;
+            this.computeNeighbours();
+        }
+        Square.prototype.computeNeighbours = function () {
+            if (this._z > 1) {
+                console.log("??: ", this.str());
+                var _a = this._board.representation[this._i][this._j].onTop(), previousTop = _a[0], z = _a[1];
+                console.log("Prev: ", previousTop.str());
+                previousTop._neighbours[Square.Neighbour.Up] = this;
+                this._neighbours[Square.Neighbour.Down] = previousTop;
+                var tt = this;
+                console.log("------START-------");
+                while (tt._neighbours[Square.Neighbour.Down] != undefined) {
+                    console.log(tt._neighbours[Square.Neighbour.Down].str());
+                    tt = tt._neighbours[Square.Neighbour.Down];
+                }
+                console.log("-------END------");
+            }
+            if (this._i + 1 < this._board.size() && this._effects != "empty" &&
+                this._board.representation[this._i + 1][this._j]._effects != "empty") {
+                this._neighbours[Square.Neighbour.East] =
+                    this._board.representation[this._i + 1][this._j];
+            }
+            if (this._i - 1 >= 0 && this._effects != "empty" &&
+                this._board.representation[this._i - 1][this._j]._effects != "empty") {
+                this._neighbours[Square.Neighbour.West] =
+                    this._board.representation[this._i - 1][this._j];
+            }
+            if (this._j + 1 < this._board.size() && this._effects != "empty" &&
+                this._board.representation[this._i][this._j + 1]._effects != "empty") {
+                this._neighbours[Square.Neighbour.North] =
+                    this._board.representation[this._i][this._j + 1];
+            }
+            if (this._j - 1 >= 0 && this._effects != "empty" &&
+                this._board.representation[this._i][this._j - 1]._effects != "empty") {
+                this._neighbours[Square.Neighbour.South] =
+                    this._board.representation[this._i][this._j - 1].onTop()[0];
+            }
+        };
+        Square.prototype.onTop = function () {
+            var top = this;
+            console.log("onTop");
+            while (top._neighbours[Square.Neighbour.Up] != undefined) {
+                top = top._neighbours[Square.Neighbour.Up];
+                console.log("+1: ", top._neighbours[Square.Neighbour.Up]);
+            }
+            return [top, top._z];
+        };
+        Square.prototype.isTop = function () {
+            return this._neighbours[Square.Neighbour.Up] != undefined;
+        };
+        Square.prototype.str = function () {
+            return this._i + " " + this._j + " " + this._z + " " + this._effects;
+        };
+        return Square;
+    }(Oddkyn.BoardElement));
+    Oddkyn.Square = Square;
+    var Square;
+    (function (Square) {
+        (function (Neighbour) {
+            Neighbour[Neighbour["North"] = 0] = "North";
+            Neighbour[Neighbour["East"] = 1] = "East";
+            Neighbour[Neighbour["South"] = 2] = "South";
+            Neighbour[Neighbour["West"] = 3] = "West";
+            Neighbour[Neighbour["Up"] = 4] = "Up";
+            Neighbour[Neighbour["Down"] = 5] = "Down";
+        })(Square.Neighbour || (Square.Neighbour = {}));
+        var Neighbour = Square.Neighbour;
+        ;
+        var Data = (function () {
+            function Data() {
+            }
+            Data.height = 66;
+            Data.width = 100;
+            Data.halfHeight = Data.height * 0.5;
+            Data.halfWidth = Data.width * 0.5;
+            Data.side = 12;
+            Data.lowerSide = 6;
+            return Data;
+        }());
+        Square.Data = Data;
+    })(Square = Oddkyn.Square || (Oddkyn.Square = {}));
+    var SquareEditor = (function (_super) {
+        __extends(SquareEditor, _super);
+        function SquareEditor(game, board, i, j, z, key, ori) {
+            _super.call(this, game, board, i, j, z, key, ori);
+            this._boardEditor = board;
+            this.events.onInputDown.add(this._onClick, this);
+            this.events.onInputOver.add(this._mouseOver, this);
+            this.events.onInputOut.add(this._mouseOut, this);
+        }
+        SquareEditor.prototype._onClick = function (square, pointer) {
+            if (pointer.rightButton.isDown) {
+                console.log("right");
+            }
+            else if (pointer.middleButton.isDown) {
+                console.log(square.str());
+                var _a = square.onTop(), s = _a[0], z = _a[1];
+                square._boardEditor.removeSquare(square._i, square._j, z, s);
+                square._board.representation[square._i][square._i] =
+                    square._boardEditor.representation[square._i][square._j];
+            }
+            else if (pointer.leftButton.isDown) {
+                console.log(square.str());
+                var _b = square.onTop(), s = _b[0], z = _b[1];
+                console.log("s: ", s.str());
+                console.log("sq: ", square.str());
+                square._boardEditor.addSquare(square._i, square._j, z + 1, square._boardEditor.getKey(), square._boardEditor.getOri());
+                square._board.representation[square._i][square._j] =
+                    square._boardEditor.representation[square._i][square._j];
+            }
+        };
+        SquareEditor.prototype._mouseOver = function () {
+            this.tint = 0x00FF00;
+        };
+        SquareEditor.prototype._mouseOut = function () {
+            this.tint = 0xFFFFFF;
+        };
+        SquareEditor.prototype.changeType = function (key) {
+            this.loadTexture(key);
+        };
+        return SquareEditor;
+    }(Square));
+    Oddkyn.SquareEditor = SquareEditor;
+})(Oddkyn || (Oddkyn = {}));
+/// <reference path="Game.ts" />

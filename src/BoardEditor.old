@@ -9,6 +9,7 @@ export class BoardEditor extends Phaser.Polygon
     game: Oddkyn.Game;
     // Size of the BoardEditor
     size: number
+    /*
     // Level 0 of the 
     emptyBoard: Array<Array<CaseEditor>>;
     // Hold groups to display the board
@@ -17,6 +18,10 @@ export class BoardEditor extends Phaser.Polygon
     charactersLayer: Array<Phaser.Group>;
     // Group which represents the board
     board: Phaser.Group;
+    */
+
+    private _board: Board;
+
 
 
     constructor(game: Oddkyn.Game, size = 17)
@@ -24,6 +29,19 @@ export class BoardEditor extends Phaser.Polygon
         super();
         this.game = game;
         this.size = size;
+
+        this._board = new Board(game, size);
+        for(var i: number = 0; i < this.size; i++) 
+        {
+            for(var j: number = 0; j < this.size; j++) 
+            {
+                let [x, y] = this.ijToxy(i, j);
+                console.log("AddSprite: ",i , j);
+                this._board.addCase(i, j, new CaseEditor(game, this, x, y, "empty"));
+            }
+        }
+
+        /*
         this.emptyBoard = new Array<Array<CaseEditor>>();
         this.board = game.add.group();
         this.boardLayer = new Array<Phaser.Group>();
@@ -39,7 +57,7 @@ export class BoardEditor extends Phaser.Polygon
                 this.boardLayer[0].add(this.emptyBoard[i][j]);
             }
         }
-
+        */
         //Construct Polygon View
         let gCX = game.world.centerX;
         let gCY = game.world.centerY;
@@ -62,7 +80,7 @@ export class BoardEditor extends Phaser.Polygon
         graphic.endFill();
         //game.input.onDown.add(this.click, this);
 
-        game.world.bringToTop(this.board);
+        game.world.bringToTop(this._board);
     }
 
     public translate(x: number, y: number)
@@ -75,8 +93,8 @@ export class BoardEditor extends Phaser.Polygon
 
     public addLayer()
     {
-        this.boardLayer.push(this.game.add.group(this.board));
-        this.charactersLayer.push(this.game.add.group(this.board));
+        //this.boardLayer.push(this.game.add.group(this.board));
+        //this.charactersLayer.push(this.game.add.group(this.board));
     }
 
     private click(pointer: Phaser.Pointer)
@@ -86,14 +104,14 @@ export class BoardEditor extends Phaser.Polygon
         {
             let [i, j] = this.xyToij(pointer.x, pointer.y);
 
-            if(i < this.size && j < this.size && i >= 0 && j >= 0 && 
-                this.emptyBoard[i][j] == null)
+            if(i < this.size && j < this.size && i >= 0 && j >= 0)// && 
+                //this.emptyBoard[i][j] == null)
             {
-                this.addCase(i, j);
+                //this.addCase(i, j);
             } 
             else
             {
-                let c =this.emptyBoard[i][j].stack("grass");
+                //let c =this.emptyBoard[i][j].stack("grass");
                 //this.casesLayer.add(c);
                 //this.cases.sort('y', Phaser.Group.SORT_ASCENDING);
             }
@@ -109,12 +127,12 @@ export class BoardEditor extends Phaser.Polygon
         let y = c.y - CaseEditor.Data.side;
         let cTop = new CaseEditor(this.game, this, c.x, y, key, ori);
         cTop.floor = c.floor + 1;
-        if (cTop.floor >= this.boardLayer.length)
+        //if (cTop.floor >= this.boardLayer.length)
         {
             this.addLayer();
         }
-        this.boardLayer[cTop.floor].add(cTop);
-        this.boardLayer[cTop.floor].sort('y', Phaser.Group.SORT_ASCENDING);
+        //this.boardLayer[cTop.floor].add(cTop);
+        //this.boardLayer[cTop.floor].sort('y', Phaser.Group.SORT_ASCENDING);
         return cTop;
     }
 
