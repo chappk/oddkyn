@@ -16,18 +16,18 @@ export class GraphicsComponent extends Phaser.Sprite
 export class BoardElement extends GraphicsComponent
 {
     protected _board: Oddkyn.Board;
-    protected _i: number;
-    protected _j: number;
-    protected _z: number;
+    public i: number;
+    public j: number;
+    public h: number;
 
     constructor(game: Oddkyn.Game, board: Oddkyn.Board, 
         i: number, j: number, z: number, key: string)
     {
         super(game, 0, 0, key);
         this._board = board;
-        this._i = i;
-        this._j = j;
-        this._z = z;
+        this.i = i;
+        this.j = j;
+        this.h = z;
     }
 
     public rotate(rot: BoardElement.Rotation): void

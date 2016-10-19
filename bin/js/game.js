@@ -5,10 +5,48 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var Oddkyn;
 (function (Oddkyn) {
+    var InputType;
+    (function (InputType) {
+        InputType[InputType["Mouse"] = 0] = "Mouse";
+        InputType[InputType["Keyboard"] = 1] = "Keyboard";
+    })(InputType || (InputType = {}));
+    ;
+    var Input = (function () {
+        function Input(callback) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            this._callback = callback;
+            this._args = args;
+        }
+        Input.prototype.resolve = function () {
+            this._callback(this._args);
+        };
+        return Input;
+    }());
+    Oddkyn.Input = Input;
+    var InputManagerEditor = (function () {
+        function InputManagerEditor() {
+            this.onClick = new Phaser.Signal();
+            this.onRelease = new Phaser.Signal();
+            this.onRelease.add(this.squareEditorRelease, this);
+        }
+        InputManagerEditor.prototype.squareEditorRelease = function (square, pointer) {
+            console.log("Damn =))");
+        };
+        return InputManagerEditor;
+    }());
+    Oddkyn.InputManagerEditor = InputManagerEditor;
+})(Oddkyn || (Oddkyn = {}));
+/// <reference path="InputManager.ts" />
+var Oddkyn;
+(function (Oddkyn) {
     var Game = (function (_super) {
         __extends(Game, _super);
         function Game() {
             _super.call(this, 800, 600, Phaser.AUTO, 'game', null);
+            this.inputManager = new Oddkyn.InputManagerEditor();
             this.state.add('Boot', Oddkyn.Boot, false);
             this.state.add('PreLoader', Oddkyn.PreLoader, false);
             this.state.add('LevelEditor', Oddkyn.LevelEditor, false);
@@ -22,8 +60,196 @@ var Oddkyn;
 window.onload = function () {
     var game = new Oddkyn.Game();
 };
+var Oddkyn;
+(function (Oddkyn) {
+    var GraphicsComponent = (function (_super) {
+        __extends(GraphicsComponent, _super);
+        function GraphicsComponent(game, x, y, key) {
+            _super.call(this, game, x, y, key);
+            this.inputEnabled = true;
+            this.input.pixelPerfectAlpha = 5;
+            this.input.pixelPerfectOver = true;
+            this.input.pixelPerfectClick = true;
+        }
+        return GraphicsComponent;
+    }(Phaser.Sprite));
+    Oddkyn.GraphicsComponent = GraphicsComponent;
+    var BoardElement = (function (_super) {
+        __extends(BoardElement, _super);
+        function BoardElement(game, board, i, j, z, key) {
+            _super.call(this, game, 0, 0, key);
+            this._board = board;
+            this.i = i;
+            this.j = j;
+            this.h = z;
+        }
+        BoardElement.prototype.rotate = function (rot) {
+            switch (rot) {
+                case BoardElement.Rotation.Right:
+                    this.frame = (this.frame + 1) % 4;
+                    break;
+                case BoardElement.Rotation.Left:
+                    this.frame = (this.frame - 1) % 4;
+                    break;
+            }
+        };
+        return BoardElement;
+    }(GraphicsComponent));
+    Oddkyn.BoardElement = BoardElement;
+    var BoardElement;
+    (function (BoardElement) {
+        (function (Rotation) {
+            Rotation[Rotation["Right"] = 0] = "Right";
+            Rotation[Rotation["Left"] = 1] = "Left";
+        })(BoardElement.Rotation || (BoardElement.Rotation = {}));
+        var Rotation = BoardElement.Rotation;
+        ;
+        (function (Orientation) {
+            Orientation[Orientation["North"] = 0] = "North";
+            Orientation[Orientation["West"] = 1] = "West";
+            Orientation[Orientation["South"] = 2] = "South";
+            Orientation[Orientation["East"] = 3] = "East";
+        })(BoardElement.Orientation || (BoardElement.Orientation = {}));
+        var Orientation = BoardElement.Orientation;
+        ;
+    })(BoardElement = Oddkyn.BoardElement || (Oddkyn.BoardElement = {}));
+})(Oddkyn || (Oddkyn = {}));
 /// <reference path="Game.ts" />
-/// <reference path="Case.ts" />
+/// <reference path="GraphicsComponent.ts" />
+var Oddkyn;
+(function (Oddkyn) {
+    var Square = (function (_super) {
+        __extends(Square, _super);
+        function Square(game, board, i, j, z, key, ori) {
+            _super.call(this, game, board, i, j, z, key);
+            this._neighbours = new Array(6);
+            this.frame = ori;
+            this._effects = key;
+            this.computeNeighbours();
+        }
+        Square.prototype.computeNeighbours = function () {
+            if (this.h > 1) {
+                console.log("Compute Neighbours of: ", this.str());
+                var previousTop = this._board.representation[this.i][this.j].getTop();
+                console.log("Previous Top: ", previousTop.str());
+                previousTop._neighbours[Square.Neighbour.Up] = this;
+                this._neighbours[Square.Neighbour.Down] = previousTop;
+                var tt = this;
+                console.log("------START-------");
+                while (tt._neighbours[Square.Neighbour.Down] != undefined) {
+                    console.log(tt._neighbours[Square.Neighbour.Down].str());
+                    tt = tt._neighbours[Square.Neighbour.Down];
+                }
+                console.log("-------END------");
+            }
+            /*
+            if(this.i + 1 < this._board.size() && this._effects != "empty" &&
+                this._board.representation[this.i + 1][this.j]._effects != "empty")
+            {
+                this._neighbours[Square.Neighbour.East] =
+                    this._board.representation[this.i + 1][this.j];
+            }
+            if(this.i - 1 >= 0 && this._effects != "empty" &&
+                this._board.representation[this.i - 1][this.j]._effects != "empty")
+            {
+                this._neighbours[Square.Neighbour.West] =
+                    this._board.representation[this.i - 1][this.j];
+            }
+            if(this.j + 1 < this._board.size() && this._effects != "empty" &&
+                this._board.representation[this.i][this.j + 1]._effects != "empty")
+            {
+                this._neighbours[Square.Neighbour.North] =
+                    this._board.representation[this.i][this.j + 1];
+            }
+            if(this.j - 1 >= 0 && this._effects != "empty" &&
+                this._board.representation[this.i][this.j - 1]._effects != "empty")
+            {
+                this._neighbours[Square.Neighbour.South] =
+                    this._board.representation[this.i][this.j - 1].getTop()[0];
+            }
+            */
+        };
+        Square.prototype.isOnTop = function () {
+            return this._neighbours[Square.Neighbour.Up] == undefined;
+        };
+        Square.prototype.getTop = function () {
+            console.log(this.str());
+            if (this.isOnTop()) {
+                return this;
+            }
+            else {
+                return this._neighbours[Square.Neighbour.Up].getTop();
+            }
+        };
+        Square.prototype.isTop = function () {
+            return this._neighbours[Square.Neighbour.Up] != undefined;
+        };
+        Square.prototype.str = function () {
+            return this.i + " " + this.j + " " + this.h + " " + this._effects;
+        };
+        return Square;
+    }(Oddkyn.BoardElement));
+    Oddkyn.Square = Square;
+    var Square;
+    (function (Square) {
+        (function (Neighbour) {
+            Neighbour[Neighbour["North"] = 0] = "North";
+            Neighbour[Neighbour["East"] = 1] = "East";
+            Neighbour[Neighbour["South"] = 2] = "South";
+            Neighbour[Neighbour["West"] = 3] = "West";
+            Neighbour[Neighbour["Up"] = 4] = "Up";
+            Neighbour[Neighbour["Down"] = 5] = "Down";
+        })(Square.Neighbour || (Square.Neighbour = {}));
+        var Neighbour = Square.Neighbour;
+        ;
+        var Data = (function () {
+            function Data() {
+            }
+            Data.height = 75;
+            Data.width = 50;
+            Data.halfHeight = Data.height * 0.5;
+            Data.halfWidth = Data.width * 0.5;
+            Data.side = 40;
+            Data.lowerSide = 11;
+            return Data;
+        }());
+        Square.Data = Data;
+    })(Square = Oddkyn.Square || (Oddkyn.Square = {}));
+    var SquareEditor = (function (_super) {
+        __extends(SquareEditor, _super);
+        function SquareEditor(game, board, i, j, z, key, ori) {
+            _super.call(this, game, board, i, j, z, key, ori);
+            this._inside = false;
+            this._boardEditor = board;
+            this.events.onInputUp.add(this._onRelease, this);
+            this.events.onInputDown.add(this._onPressed, this);
+            this.events.onInputOver.add(this._onOver, this);
+            this.events.onInputOut.add(this._onOut, this);
+        }
+        SquareEditor.prototype._onRelease = function (s, p) {
+            if (this._inside) {
+                if (p.middleButton.justReleased() || p.leftButton.justReleased()) {
+                    console.log("Add - Remove");
+                    this._boardEditor.squareEditor.dispatch(s, p);
+                }
+            }
+        };
+        SquareEditor.prototype._onPressed = function (s, p) {
+        };
+        SquareEditor.prototype._onOver = function (s, p) {
+            this._inside = true;
+            this.tint = 0xFF00FF;
+        };
+        SquareEditor.prototype._onOut = function (s, p) {
+            this._inside = false;
+            this.tint = 0xFFFFFF;
+        };
+        return SquareEditor;
+    }(Square));
+    Oddkyn.SquareEditor = SquareEditor;
+})(Oddkyn || (Oddkyn = {}));
+/// <reference path="Game.ts" />
+/// <reference path="Square.ts" />
 var Oddkyn;
 (function (Oddkyn) {
     var Board = (function () {
@@ -44,6 +270,7 @@ var Oddkyn;
         __extends(BoardEditor, _super);
         function BoardEditor(game, size) {
             _super.call(this, game, size);
+            this.squareEditor = new Phaser.Signal();
             this.representation = new Array(size);
             for (var i = 0; i < this.representation.length; ++i) {
                 this.representation[i] = new Array(size);
@@ -55,9 +282,32 @@ var Oddkyn;
                 for (var _i = 0, _a = this.representation[i]; _i < _a.length; _i++) {
                     var square = _a[_i];
                     square.computeNeighbours();
+                    square.alpha = 0.1;
                 }
             }
+            this.squareEditor.add(this._handleSquareEditor, this);
         }
+        BoardEditor.prototype._handleSquareEditor = function (s, p) {
+            console.log(p.leftButton.timeUp);
+            console.log(p.middleButton.timeUp);
+            console.log(p.rightButton.timeUp);
+            if (p.rightButton.justReleased()) {
+                console.log("right");
+            }
+            if (p.leftButton.justReleased()) {
+                console.log("----------------------------> ADD");
+                var s_ = s.getTop();
+                this.addSquare(s.i, s.j, s_.h + 1, this.getKey(), this.getOri());
+            }
+            else if (p.middleButton.justReleased()) {
+                console.log("----------------------------> REMOVE");
+                var s_ = s.getTop();
+                if (s_.h > 0)
+                    this.removeSquare(s.i, s.j, s_.h, s_);
+            }
+            p.reset();
+            console.log("END");
+        };
         BoardEditor.prototype.addSquare = function (i, j, z, key, ori) {
             var s = new Oddkyn.SquareEditor(this._game, this, i, j, z, key, ori);
             this._display.addGC(i, j, z, s, Oddkyn.Layer.Type.Environment);
@@ -67,6 +317,7 @@ var Oddkyn;
             var sdown = s._neighbours[Oddkyn.Square.Neighbour.Down];
             if (sdown != undefined) {
                 sdown._neighbours[Oddkyn.Square.Neighbour.Up] = undefined;
+                this.representation[i][j] = sdown;
             }
             //sdown.computeNeighbours();
             this._display.removeGC(i, j, z, s, Oddkyn.Layer.Type.Environment);
@@ -116,60 +367,6 @@ var Oddkyn;
         return Boot;
     }(Phaser.State));
     Oddkyn.Boot = Boot;
-})(Oddkyn || (Oddkyn = {}));
-var Oddkyn;
-(function (Oddkyn) {
-    var GraphicsComponent = (function (_super) {
-        __extends(GraphicsComponent, _super);
-        function GraphicsComponent(game, x, y, key) {
-            _super.call(this, game, x, y, key);
-            this.inputEnabled = true;
-            this.input.pixelPerfectAlpha = 5;
-            this.input.pixelPerfectOver = true;
-            this.input.pixelPerfectClick = true;
-        }
-        return GraphicsComponent;
-    }(Phaser.Sprite));
-    Oddkyn.GraphicsComponent = GraphicsComponent;
-    var BoardElement = (function (_super) {
-        __extends(BoardElement, _super);
-        function BoardElement(game, board, i, j, z, key) {
-            _super.call(this, game, 0, 0, key);
-            this._board = board;
-            this._i = i;
-            this._j = j;
-            this._z = z;
-        }
-        BoardElement.prototype.rotate = function (rot) {
-            switch (rot) {
-                case BoardElement.Rotation.Right:
-                    this.frame = (this.frame + 1) % 4;
-                    break;
-                case BoardElement.Rotation.Left:
-                    this.frame = (this.frame - 1) % 4;
-                    break;
-            }
-        };
-        return BoardElement;
-    }(GraphicsComponent));
-    Oddkyn.BoardElement = BoardElement;
-    var BoardElement;
-    (function (BoardElement) {
-        (function (Rotation) {
-            Rotation[Rotation["Right"] = 0] = "Right";
-            Rotation[Rotation["Left"] = 1] = "Left";
-        })(BoardElement.Rotation || (BoardElement.Rotation = {}));
-        var Rotation = BoardElement.Rotation;
-        ;
-        (function (Orientation) {
-            Orientation[Orientation["North"] = 0] = "North";
-            Orientation[Orientation["West"] = 1] = "West";
-            Orientation[Orientation["South"] = 2] = "South";
-            Orientation[Orientation["East"] = 3] = "East";
-        })(BoardElement.Orientation || (BoardElement.Orientation = {}));
-        var Orientation = BoardElement.Orientation;
-        ;
-    })(BoardElement = Oddkyn.BoardElement || (Oddkyn.BoardElement = {}));
 })(Oddkyn || (Oddkyn = {}));
 /// <reference path="Game.ts" />
 /// <reference path="Board.ts" />
@@ -249,6 +446,8 @@ var Oddkyn;
     Oddkyn.LayerManager = LayerManager;
 })(Oddkyn || (Oddkyn = {}));
 /// <reference path="Board.ts" />
+/// <reference path="Game.ts" />
+/// <reference path="InputManager.ts" />
 var Oddkyn;
 (function (Oddkyn) {
     var LevelEditor = (function (_super) {
@@ -258,6 +457,10 @@ var Oddkyn;
         }
         LevelEditor.prototype.init = function () {
             this.game.stage.backgroundColor = "#A4A4A4";
+            //this.game.inputManager = new InputManager();
+            console.log(this.game.inputManager.onClick);
+            this.game.inputManager.onClick.add(this.create, this);
+            console.log(this.game.inputManager.onClick);
         };
         LevelEditor.prototype.preload = function () {
         };
@@ -289,8 +492,10 @@ var Oddkyn;
         PreLoader.prototype.preload = function () {
             this.preLoadBar = this.add.sprite(200, 250, 'preLoadBar');
             this.load.setPreloadSprite(this.preLoadBar);
-            this.load.spritesheet('grass', 'assets/tiles/grass.png', 100, 66, 4);
-            this.load.spritesheet('empty', 'assets/tiles/empty.png', 100, 66, 4);
+            //this.load.spritesheet('grass', 'assets/tiles/grass.png', 100, 66, 4);
+            this.load.spritesheet('grass', 'assets/tiles/new_model.png', 50, 75, 4);
+            this.load.spritesheet('empty', 'assets/tiles/empty.png', 50, 75, 4);
+            //this.load.spritesheet('empty', 'assets/tiles/empty.png', 100, 66, 4);
         };
         PreLoader.prototype.create = function () {
             var tween = this.add.tween(this.preLoadBar).to({ alpha: 0 }, 1000, Phaser.Easing.Linear.None, true);
@@ -321,138 +526,4 @@ var Splash = (function () {
     };
     return Splash;
 }());
-/// <reference path="Game.ts" />
-var Oddkyn;
-(function (Oddkyn) {
-    var Square = (function (_super) {
-        __extends(Square, _super);
-        function Square(game, board, i, j, z, key, ori) {
-            _super.call(this, game, board, i, j, z, key);
-            this._neighbours = new Array(6);
-            this.frame = ori;
-            this._effects = key;
-            this.computeNeighbours();
-        }
-        Square.prototype.computeNeighbours = function () {
-            if (this._z > 1) {
-                console.log("??: ", this.str());
-                var _a = this._board.representation[this._i][this._j].onTop(), previousTop = _a[0], z = _a[1];
-                console.log("Prev: ", previousTop.str());
-                previousTop._neighbours[Square.Neighbour.Up] = this;
-                this._neighbours[Square.Neighbour.Down] = previousTop;
-                var tt = this;
-                console.log("------START-------");
-                while (tt._neighbours[Square.Neighbour.Down] != undefined) {
-                    console.log(tt._neighbours[Square.Neighbour.Down].str());
-                    tt = tt._neighbours[Square.Neighbour.Down];
-                }
-                console.log("-------END------");
-            }
-            if (this._i + 1 < this._board.size() && this._effects != "empty" &&
-                this._board.representation[this._i + 1][this._j]._effects != "empty") {
-                this._neighbours[Square.Neighbour.East] =
-                    this._board.representation[this._i + 1][this._j];
-            }
-            if (this._i - 1 >= 0 && this._effects != "empty" &&
-                this._board.representation[this._i - 1][this._j]._effects != "empty") {
-                this._neighbours[Square.Neighbour.West] =
-                    this._board.representation[this._i - 1][this._j];
-            }
-            if (this._j + 1 < this._board.size() && this._effects != "empty" &&
-                this._board.representation[this._i][this._j + 1]._effects != "empty") {
-                this._neighbours[Square.Neighbour.North] =
-                    this._board.representation[this._i][this._j + 1];
-            }
-            if (this._j - 1 >= 0 && this._effects != "empty" &&
-                this._board.representation[this._i][this._j - 1]._effects != "empty") {
-                this._neighbours[Square.Neighbour.South] =
-                    this._board.representation[this._i][this._j - 1].onTop()[0];
-            }
-        };
-        Square.prototype.onTop = function () {
-            var top = this;
-            console.log("onTop");
-            while (top._neighbours[Square.Neighbour.Up] != undefined) {
-                top = top._neighbours[Square.Neighbour.Up];
-                console.log("+1: ", top._neighbours[Square.Neighbour.Up]);
-            }
-            return [top, top._z];
-        };
-        Square.prototype.isTop = function () {
-            return this._neighbours[Square.Neighbour.Up] != undefined;
-        };
-        Square.prototype.str = function () {
-            return this._i + " " + this._j + " " + this._z + " " + this._effects;
-        };
-        return Square;
-    }(Oddkyn.BoardElement));
-    Oddkyn.Square = Square;
-    var Square;
-    (function (Square) {
-        (function (Neighbour) {
-            Neighbour[Neighbour["North"] = 0] = "North";
-            Neighbour[Neighbour["East"] = 1] = "East";
-            Neighbour[Neighbour["South"] = 2] = "South";
-            Neighbour[Neighbour["West"] = 3] = "West";
-            Neighbour[Neighbour["Up"] = 4] = "Up";
-            Neighbour[Neighbour["Down"] = 5] = "Down";
-        })(Square.Neighbour || (Square.Neighbour = {}));
-        var Neighbour = Square.Neighbour;
-        ;
-        var Data = (function () {
-            function Data() {
-            }
-            Data.height = 66;
-            Data.width = 100;
-            Data.halfHeight = Data.height * 0.5;
-            Data.halfWidth = Data.width * 0.5;
-            Data.side = 12;
-            Data.lowerSide = 6;
-            return Data;
-        }());
-        Square.Data = Data;
-    })(Square = Oddkyn.Square || (Oddkyn.Square = {}));
-    var SquareEditor = (function (_super) {
-        __extends(SquareEditor, _super);
-        function SquareEditor(game, board, i, j, z, key, ori) {
-            _super.call(this, game, board, i, j, z, key, ori);
-            this._boardEditor = board;
-            this.events.onInputDown.add(this._onClick, this);
-            this.events.onInputOver.add(this._mouseOver, this);
-            this.events.onInputOut.add(this._mouseOut, this);
-        }
-        SquareEditor.prototype._onClick = function (square, pointer) {
-            if (pointer.rightButton.isDown) {
-                console.log("right");
-            }
-            else if (pointer.middleButton.isDown) {
-                console.log(square.str());
-                var _a = square.onTop(), s = _a[0], z = _a[1];
-                square._boardEditor.removeSquare(square._i, square._j, z, s);
-                square._board.representation[square._i][square._i] =
-                    square._boardEditor.representation[square._i][square._j];
-            }
-            else if (pointer.leftButton.isDown) {
-                console.log(square.str());
-                var _b = square.onTop(), s = _b[0], z = _b[1];
-                console.log("s: ", s.str());
-                console.log("sq: ", square.str());
-                square._boardEditor.addSquare(square._i, square._j, z + 1, square._boardEditor.getKey(), square._boardEditor.getOri());
-                square._board.representation[square._i][square._j] =
-                    square._boardEditor.representation[square._i][square._j];
-            }
-        };
-        SquareEditor.prototype._mouseOver = function () {
-            this.tint = 0x00FF00;
-        };
-        SquareEditor.prototype._mouseOut = function () {
-            this.tint = 0xFFFFFF;
-        };
-        SquareEditor.prototype.changeType = function (key) {
-            this.loadTexture(key);
-        };
-        return SquareEditor;
-    }(Square));
-    Oddkyn.SquareEditor = SquareEditor;
-})(Oddkyn || (Oddkyn = {}));
 /// <reference path="Game.ts" />

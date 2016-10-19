@@ -1,4 +1,6 @@
 /// <reference path="Game.ts" />
+/// <reference path="GraphicsComponent.ts" />
+
 module Oddkyn
 {
 
@@ -19,11 +21,11 @@ export class Square extends BoardElement
 
     public computeNeighbours(): void
     {
-        if(this._z > 1)
+        if(this.h > 1)
         {
-            console.log("??: ", this.str());
-            let [previousTop, z] = this._board.representation[this._i][this._j].onTop();
-            console.log("Prev: ", previousTop.str());
+            console.log("Compute Neighbours of: ", this.str());
+            let previousTop = this._board.representation[this.i][this.j].getTop();
+            console.log("Previous Top: ", previousTop.str());
             previousTop._neighbours[Square.Neighbour.Up] = this;
             this._neighbours[Square.Neighbour.Down] = previousTop;
             let tt: Square = this;
@@ -35,42 +37,50 @@ export class Square extends BoardElement
             }
             console.log("-------END------");
         }
-        if(this._i + 1 < this._board.size() && this._effects != "empty" &&
-            this._board.representation[this._i + 1][this._j]._effects != "empty")
+        /*
+        if(this.i + 1 < this._board.size() && this._effects != "empty" &&
+            this._board.representation[this.i + 1][this.j]._effects != "empty")
         {
             this._neighbours[Square.Neighbour.East] = 
-                this._board.representation[this._i + 1][this._j];
+                this._board.representation[this.i + 1][this.j];
         }
-        if(this._i - 1 >= 0 && this._effects != "empty" && 
-            this._board.representation[this._i - 1][this._j]._effects != "empty")
+        if(this.i - 1 >= 0 && this._effects != "empty" && 
+            this._board.representation[this.i - 1][this.j]._effects != "empty")
         {
             this._neighbours[Square.Neighbour.West] = 
-                this._board.representation[this._i - 1][this._j];
+                this._board.representation[this.i - 1][this.j];
         }
-        if(this._j + 1 < this._board.size() && this._effects != "empty" && 
-            this._board.representation[this._i][this._j + 1]._effects != "empty")
+        if(this.j + 1 < this._board.size() && this._effects != "empty" && 
+            this._board.representation[this.i][this.j + 1]._effects != "empty")
         {
             this._neighbours[Square.Neighbour.North] = 
-                this._board.representation[this._i][this._j + 1];
+                this._board.representation[this.i][this.j + 1];
         }
-        if(this._j - 1 >= 0 && this._effects != "empty" && 
-            this._board.representation[this._i][this._j - 1]._effects != "empty")
+        if(this.j - 1 >= 0 && this._effects != "empty" && 
+            this._board.representation[this.i][this.j - 1]._effects != "empty")
         {
             this._neighbours[Square.Neighbour.South] = 
-                this._board.representation[this._i][this._j - 1].onTop()[0];
+                this._board.representation[this.i][this.j - 1].getTop()[0];
         }
+        */
     }
 
-    public onTop(): [Square, number]
+    public isOnTop(): boolean
     {
-        let top: Square = this;
-        console.log("onTop");
-        while(top._neighbours[Square.Neighbour.Up] != undefined)
+        return this._neighbours[Square.Neighbour.Up] == undefined;
+    }
+
+    public getTop(): Square
+    {
+        console.log(this.str())
+        if(this.isOnTop())
         {
-            top = top._neighbours[Square.Neighbour.Up];
-            console.log("+1: ", top._neighbours[Square.Neighbour.Up]);
+            return this;
         }
-        return [top, top._z];
+        else
+        {
+            return this._neighbours[Square.Neighbour.Up].getTop();
+        }
     }
 
     public isTop(): boolean
@@ -80,7 +90,7 @@ export class Square extends BoardElement
 
     public str(): string
     {
-        return this._i+" "+this._j+" "+this._z+" "+this._effects;
+        return this.i+" "+this.j+" "+this.h+" "+this._effects;
     }
 }
 
@@ -89,55 +99,114 @@ export module Square
 export enum Neighbour {North = 0, East, South, West, Up, Down};
 export class Data
 {
-    static height = 66;
-    static width = 100;
+    static height = 75;
+    static width = 50;
     static halfHeight = Data.height * 0.5;
     static halfWidth = Data.width * 0.5;
-    static side = 12;
-    static lowerSide = 6;   
+    static side = 40;
+    static lowerSide = 11;   
 }
 }
 
 export class SquareEditor extends Square
 {
     private _boardEditor: BoardEditor;
+    private _inside: boolean = false;
 
     constructor(game: Oddkyn.Game, board: BoardEditor, i: number, j: number, z: number,
         key: string, ori: BoardElement.Orientation)
     {
         super(game, board, i, j, z, key, ori);
         this._boardEditor = board;
-        this.events.onInputDown.add(this._onClick, this);
-        this.events.onInputOver.add(this._mouseOver, this);
-        this.events.onInputOut.add(this._mouseOut, this);
+        this.events.onInputUp.add(this._onRelease, this);
+        this.events.onInputDown.add(this._onPressed, this);
+
+        this.events.onInputOver.add(this._onOver, this);
+        this.events.onInputOut.add(this._onOut, this);
     }
+
+    private _onRelease(s: SquareEditor, p: Phaser.Pointer): void
+    {
+        if(this._inside)
+        {
+            if(p.middleButton.justReleased() || p.leftButton.justReleased())
+            {
+                console.log("Add - Remove");
+                this._boardEditor.squareEditor.dispatch(s, p);
+            }
+        }
+    }
+
+    private _onPressed(s: SquareEditor, p: Phaser.Pointer): void
+    {
+        
+    }
+
+    private _onOver(s: SquareEditor, p: Phaser.Pointer): void
+    {
+        this._inside = true;
+        this.tint = 0xFF00FF;
+    }
+
+    private _onOut(s: SquareEditor, p: Phaser.Pointer): void
+    {
+        this._inside = false;
+        this.tint = 0xFFFFFF;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+
+    private _onRelease(square: SquareEditor, pointer: Phaser.Pointer): void
+    {
+        console.log(pointer);
+        if(pointer.rightButton.justReleased(10000))
+        {
+            console.log("JustReleased: Right")
+            //this.onRightRelease.dispatch(this);
+        }
+        else if(pointer.leftButton.justPressed(10000))
+        {
+            console.log("JustReleased: Left")
+            //this.onLeftRelease.dispatch(this);
+        }
+        console.log(pointer.target);
+        (<Oddkyn.Game>this.game).inputManager.onRelease.dispatch(this, pointer);
+        console.log(this.str());
+    }f
 
     private _onClick(square: SquareEditor, pointer: Phaser.Pointer): void
     {
-        if(pointer.rightButton.isDown)
-        {
-            console.log("right");
-        }
-        else if (pointer.middleButton.isDown)
-        {
-
-            console.log(square.str());
-            let [s, z] = square.onTop();
-            square._boardEditor.removeSquare(square._i, square._j, z, s);
-            square._board.representation[square._i][square._i] = 
-                square._boardEditor.representation[square._i][square._j];
-        }
-        else if(pointer.leftButton.isDown)
-        {
-                        console.log(square.str());
-            let [s, z] = square.onTop();
-            console.log("s: ",s.str());
-            console.log("sq: ", square.str());
-            square._boardEditor.addSquare(square._i, square._j, z + 1, 
-                square._boardEditor.getKey(), square._boardEditor.getOri());
-            square._board.representation[square._i][square._j] = 
-                square._boardEditor.representation[square._i][square._j];
-        }
+        console.log("???")
+        console.log(pointer)
+        
     }
 
     private _mouseOver(): void
@@ -155,6 +224,8 @@ export class SquareEditor extends Square
     {
         this.loadTexture(key);
     }
+
+    */
 
 }
 }

@@ -1,8 +1,12 @@
+/// <reference path="InputManager.ts" />
+
 module Oddkyn
 {
 
 export class Game extends Phaser.Game
 {
+    public inputManager: InputManagerEditor = new InputManagerEditor();
+
     constructor()
     {
         super(800, 600, Phaser.AUTO, 'game', null);
@@ -10,7 +14,7 @@ export class Game extends Phaser.Game
         this.state.add('Boot', Boot, false);
         this.state.add('PreLoader', PreLoader, false);
         this.state.add('LevelEditor', LevelEditor, false);
-
+        
         this.state.start('Boot', true, true);
     }
 }

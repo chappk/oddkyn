@@ -1,4 +1,7 @@
 /// <reference path="Board.ts" />
+/// <reference path="Game.ts" />
+/// <reference path="InputManager.ts" />
+
 
 module Oddkyn
 {
@@ -12,7 +15,11 @@ export class LevelEditor extends Phaser.State
     init()
     {
         this.game.stage.backgroundColor = "#A4A4A4";
-        
+        //this.game.inputManager = new InputManager();
+        console.log((<Oddkyn.Game>this.game).inputManager.onClick);
+        (<Oddkyn.Game>this.game).inputManager.onClick.add(this.create, this);
+        console.log((<Oddkyn.Game>this.game).inputManager.onClick);
+
     }
 
     preload()
@@ -24,7 +31,7 @@ export class LevelEditor extends Phaser.State
     {
         this.notDown = true;
         this.game.input.mouse.capture = true;
-        this.board = new BoardEditor(this.game, 3);
+        this.board = new BoardEditor(<Oddkyn.Game>this.game, 3);
     }
 
     update()
