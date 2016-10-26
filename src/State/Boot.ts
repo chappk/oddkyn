@@ -1,6 +1,9 @@
 module Oddkyn
 {
 
+export module State
+{
+
 export class Boot extends Phaser.State
 {
     idx: number;
@@ -41,6 +44,8 @@ export class Boot extends Phaser.State
             this.game.state.start('PreLoader', true, false);
         }
     }
+}
+
 }
 
 }

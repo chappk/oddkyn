@@ -1,6 +1,9 @@
-/// <reference path="../tsDefinitions/phaser.d.ts" />
+/// <reference path="../../tsDefinitions/phaser.d.ts" />
 
-class Splash
+module Oddkyn
+{
+
+export class Splash
 {
     private sprite: Phaser.Sprite
     private tween: Phaser.Tween
@@ -25,5 +28,7 @@ class Splash
         this.sprite.game.cache.removeImage(this.sprite.name);
         this.sprite.kill();
     }
+
+}
 
 }
